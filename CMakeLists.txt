@@ -1,54 +1,21 @@
-cmake_minimum_required(VERSION 3.5...3.29)
-option(DUCKDB_WASM_EXTENSION "Whether compiling for Wasm target" OFF)
+cmake_minimum_required(VERSION 3.5)
 
-###
-# Configuration
-###
-if(NOT DEFINED EXTENSION_NAME)
-    message(FATAL_ERROR "DuckDB extension name is required")
-endif()
-if (DEFINED TARGET_DUCKDB_VERSION_MAJOR)
-    add_definitions(-DDUCKDB_EXTENSION_API_VERSION_MAJOR=${TARGET_DUCKDB_VERSION_MAJOR})
-endif()
-if (DEFINED TARGET_DUCKDB_VERSION_MINOR)
-    add_definitions(-DDUCKDB_EXTENSION_API_VERSION_MINOR=${TARGET_DUCKDB_VERSION_MINOR})
-endif()
-if (DEFINED TARGET_DUCKDB_VERSION_PATCH)
-    add_definitions(-DDUCKDB_EXTENSION_API_VERSION_PATCH=${TARGET_DUCKDB_VERSION_PATCH})
-endif()
+# Set extension name here
+set(TARGET_NAME hdfs)
 
-add_definitions(-DDUCKDB_EXTENSION_NAME=${EXTENSION_NAME})
+set(EXTENSION_NAME ${TARGET_NAME}_extension)
+set(LOADABLE_EXTENSION_NAME ${TARGET_NAME}_loadable_extension)
 
-if (DEFINED DUCKDB_EXTENSION_API_VERSION_UNSTABLE)
-    add_definitions(-DDUCKDB_EXTENSION_API_VERSION_UNSTABLE=${DUCKDB_EXTENSION_API_VERSION_UNSTABLE})
-endif()
+project(${TARGET_NAME})
+include_directories(src/include)
 
-###
-# Build
-###
-project(${EXTENSION_NAME} LANGUAGES C)
+set(EXTENSION_SOURCES src/hdfs_extension.cpp)
 
-# Create Extension library
-set(EXTENSION_SOURCES
-        src/add_numbers.c
-        src/capi_quack.c
-)
+build_static_extension(${TARGET_NAME} ${EXTENSION_SOURCES})
+build_loadable_extension(${TARGET_NAME} " " ${EXTENSION_SOURCES})
 
-if (DUCKDB_WASM_EXTENSION)
-	add_library(${EXTENSION_NAME} STATIC ${EXTENSION_SOURCES})
-else()
-	add_library(${EXTENSION_NAME} SHARED ${EXTENSION_SOURCES})
-endif()
-
-# Hide symbols
-set(CMAKE_CXX_VISIBILITY_PRESET hidden)
-set(CMAKE_C_VISIBILITY_PRESET hidden)
-set(VISIBILITY_INLINES_HIDDEN ON)
-set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -s")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -s")
-
-# Include own headers
-target_include_directories(${EXTENSION_NAME} PRIVATE src/include)
-
-# Include DuckDB C API headers
-target_include_directories(${EXTENSION_NAME} PRIVATE duckdb_capi)
+install(
+  TARGETS ${EXTENSION_NAME}
+  EXPORT "${DUCKDB_EXPORT_SET}"
+  LIBRARY DESTINATION "${INSTALL_LIB_DIR}"
+  ARCHIVE DESTINATION "${INSTALL_LIB_DIR}")

@@ -1,32 +1,16 @@
-.PHONY: clean clean_all
-
 PROJ_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
-# Main extension configuration
-EXTENSION_NAME=capi_quack
+# Configuration of extension
+EXT_NAME=hdfs
+EXT_CONFIG=${PROJ_DIR}extension_config.cmake
 
-# Set to 1 to enable Unstable API (binaries will only work on TARGET_DUCKDB_VERSION, forwards compatibility will be broken)
-# WARNING: When set to 1, the duckdb_extension.h from the TARGET_DUCKDB_VERSION must be used, using any other version of
-#          the header is unsafe.
-USE_UNSTABLE_C_API=0
+# Include the Makefile from extension-ci-tools
+include extension-ci-tools/makefiles/duckdb_extension.Makefile
 
-# The DuckDB version to target
-TARGET_DUCKDB_VERSION=v1.2.0
+.PHONY: quality-gates install-git-hooks
 
-all: configure release
+quality-gates:
+	./scripts/check-quality-gates.sh
 
-# Include makefiles from DuckDB
-include extension-ci-tools/makefiles/c_api_extensions/base.Makefile
-include extension-ci-tools/makefiles/c_api_extensions/c_cpp.Makefile
-
-configure: venv platform extension_version
-
-debug: build_extension_library_debug build_extension_with_metadata_debug
-release: build_extension_library_release build_extension_with_metadata_release
-
-test: test_debug
-test_debug: test_extension_debug
-test_release: test_extension_release
-
-clean: clean_build clean_cmake
-clean_all: clean clean_configure
+install-git-hooks:
+	git config core.hooksPath .githooks

@@ -1,0 +1,18 @@
+# name: test/sql/hdfs.test
+# description: test hdfs extension
+# group: [sql]
+
+# Before we load the extension, this will fail
+statement error
+SELECT hdfs_template_status('bootstrap');
+----
+Catalog Error: Scalar Function with name hdfs_template_status does not exist!
+
+# Require statement will ensure this test is run with this extension loaded
+require hdfs
+
+# Confirm the extension works
+query I
+SELECT hdfs_template_status('bootstrap');
+----
+hdfs extension scaffold active: bootstrap
