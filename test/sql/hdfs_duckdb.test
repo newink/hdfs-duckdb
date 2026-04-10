@@ -1,0 +1,31 @@
+# name: test/sql/hdfs_duckdb.test
+# description: test hdfs_duckdb extension
+# group: [sql]
+
+# Before we load the extension, this will fail
+statement error
+SELECT hdfs_duckdb_template_status('bootstrap');
+----
+Catalog Error: Scalar Function with name hdfs_duckdb_template_status does not exist!
+
+# Require statement will ensure this test is run with this extension loaded
+require hdfs_duckdb
+
+# Confirm the extension works
+query I
+SELECT hdfs_duckdb_template_status('bootstrap');
+----
+hdfs_duckdb filesystem dispatch active for hdfs://: bootstrap
+
+query I
+SELECT hdfs_duckdb_uri_scheme();
+----
+hdfs://
+
+statement ok
+SET hdfs_default_fs='hdfs://namenode:8020/'
+
+query I
+SELECT hdfs_duckdb_normalize_uri('hdfs:///warehouse/events.parquet');
+----
+hdfs://namenode:8020/warehouse/events.parquet

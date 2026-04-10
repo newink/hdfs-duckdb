@@ -1,0 +1,21 @@
+# name: test/e2e/hdfs_duckdb_e2e_read.test
+# description: Linux libhdfs-backed read-only HDFS E2E for hdfs_duckdb
+# group: [e2e]
+
+require-env HDFS_E2E_REQUIRE_LIBHDFS 1
+
+require hdfs_duckdb
+
+require parquet
+
+
+query I
+SELECT count(*) FROM glob('hdfs:///duckdb-hdfs-e2e/parquet/*.parquet');
+----
+2
+
+query IIIT
+SELECT count(*), min(id), max(id), string_agg(label, ',' ORDER BY id)
+FROM read_parquet('hdfs:///duckdb-hdfs-e2e/parquet/*.parquet');
+----
+4	1	4	alpha,beta,gamma,delta

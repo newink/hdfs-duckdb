@@ -1,0 +1,35 @@
+# name: test/sql/hdfs_duckdb_persistent.test
+# description: test hdfs_duckdb behavior across sqllogictest restarts
+# group: [sql]
+
+load __TEST_DIR__/hdfs_duckdb_persistent.db
+
+require hdfs_duckdb
+
+statement ok
+SET hdfs_default_fs='hdfs://persist-cluster/'
+
+query I
+SELECT hdfs_duckdb_normalize_uri('hdfs:///warehouse/file.parquet');
+----
+hdfs://persist-cluster/warehouse/file.parquet
+
+restart
+
+query I
+SELECT hdfs_duckdb_template_status('after_restart');
+----
+hdfs_duckdb filesystem dispatch active for hdfs://: after_restart
+
+query I
+SELECT current_setting('hdfs_default_fs');
+----
+hdfs://persist-cluster
+
+statement ok
+SET hdfs_default_fs='viewfs://persist-viewfs'
+
+query I
+SELECT hdfs_duckdb_normalize_uri('hdfs:///warehouse/file.parquet');
+----
+viewfs://persist-viewfs/warehouse/file.parquet

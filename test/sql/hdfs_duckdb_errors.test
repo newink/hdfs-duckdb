@@ -1,0 +1,30 @@
+# name: test/sql/hdfs_duckdb_errors.test
+# description: test hdfs_duckdb malformed URI and setting errors
+# group: [sql]
+
+require hdfs_duckdb
+
+statement error
+SELECT hdfs_duckdb_normalize_uri('hdfs:///warehouse/events.parquet');
+----
+hdfs URI "hdfs:///warehouse/events.parquet" requires hdfs_default_fs to be set because the URI does not include an authority
+
+statement error
+SELECT hdfs_duckdb_normalize_uri('hdfs://');
+----
+Malformed hdfs URI "hdfs://": expected either hdfs:///absolute/path or hdfs://authority/absolute/path
+
+statement error
+SELECT hdfs_duckdb_normalize_uri('hdfs://namenode/path?x=1');
+----
+Malformed hdfs URI "hdfs://namenode/path?x=1": query and fragment components are not supported
+
+statement error
+SET hdfs_default_fs='https://gateway.example.com';
+----
+Setting hdfs_default_fs must use hdfs:// or viewfs://, got "https://gateway.example.com"
+
+statement error
+SET hdfs_extra_conf=MAP(['dfs.client.read.shortcircuit'], [NULL]);
+----
+Setting hdfs_extra_conf does not allow NULL configuration values
