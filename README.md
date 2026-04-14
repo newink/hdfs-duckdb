@@ -99,9 +99,11 @@ The local prerequisites for this are:
 
 - `python3`
 - `cmake`
-- `black>=24`
+- `black==24.*`
 - `clang-format`
 - `clang-tidy` or `TIDY_BINARY=/path/to/clang-tidy`
+
+`make quality-gates` enforces the same Black major version as CI to avoid formatter drift between local runs and GitHub Actions.
 
 To install the repo-owned `pre-push` hook for this clone:
 ```sh

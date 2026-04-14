@@ -38,11 +38,13 @@ def list_hdfs_fixtures():
 def test_can_install_and_load_hdfs_from_local_repo():
     con = connect_and_load()
     try:
-        loaded = con.execute("""
+        loaded = con.execute(
+            """
             SELECT loaded
             FROM duckdb_extensions()
             WHERE extension_name = 'hdfs_duckdb'
-            """).fetchone()
+            """
+        ).fetchone()
         assert loaded == (True,)
     finally:
         con.close()

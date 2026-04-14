@@ -18,6 +18,22 @@ require_command() {
 	exit 1
 }
 
+require_black_version() {
+	local version
+
+	version="$(black --version | awk 'NR==1 {print $2}' | tr -d ',')"
+
+	case "$version" in
+	24.*)
+		return 0
+		;;
+	esac
+
+	printf 'unsupported black version for local quality gates: %s\n' "$version" >&2
+	printf '%s\n' 'Install the CI-matching formatter with: pip install "black==24.*"' >&2
+	exit 1
+}
+
 run_step() {
 	printf '\n==> %s\n' "$1"
 	shift
@@ -26,7 +42,8 @@ run_step() {
 
 require_command python3 'Install Python 3 and ensure `python3` is on PATH.'
 require_command cmake 'Install CMake and ensure `cmake` is on PATH.'
-require_command black 'Install formatter dependency with: pip install "black>=24"'
+require_command black 'Install formatter dependency with: pip install "black==24.*"'
+require_black_version
 require_command clang-format 'Install LLVM/clang-format or ensure it is on PATH.'
 
 if [[ -n "${TIDY_BINARY:-}" ]]; then
